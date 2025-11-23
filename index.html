@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adithyan's Portfolio</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon@v2.15.1/devicon.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+        canvas {
+            display: block;
+            vertical-align: bottom;
+        }
+        #tsparticles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        function Landing() {
+            const [displayText, setDisplayText] = React.useState('');
+            const [showCursor, setShowCursor] = React.useState(true);
+            const [startTyping, setStartTyping] = React.useState(false);
+            const fullText = "Adithyan Vinod";
+            const githubUrl = "https://github.com/Xraayan";
+            
+            // ADD YOUR SOCIAL MEDIA LINKS HERE
+            const socialLinks = {
+                github: "https://github.com/Xraayan",
+                linkedin: "https://www.linkedin.com/in/asteroiddestroyer3000", 
+                email: "mailto:adithyanvinod616@gmail.com"
+            };
+            
+            React.useEffect(() => {
+                // Blink cursor 3 times before starting to type
+                let blinkCount = 0;
+                const blinkTimer = setInterval(() => {
+                    setShowCursor(prev => !prev);
+                    blinkCount++;
+                    if (blinkCount >= 6) { // 3 complete blinks (on/off cycles)
+                        clearInterval(blinkTimer);
+                        setShowCursor(true);
+                        setStartTyping(true);
+                    }
+                }, 250);
+                
+                return () => clearInterval(blinkTimer);
+            }, []);
+            
+            React.useEffect(() => {
+                if (!startTyping) return;
+                
+                let index = 0;
+                const timer = setInterval(() => {
+                    if (index <= fullText.length) {
+                        setDisplayText(fullText.slice(0, index));
+                        
+                        // Pause after typing 'Adithyan' (8 characters)
+                        if (index === 8) {
+                            clearInterval(timer);
+                            // Blink cursor twice during pause
+                            let pauseBlinkCount = 0;
+                            const pauseBlinkTimer = setInterval(() => {
+                                setShowCursor(prev => !prev);
+                                pauseBlinkCount++;
+                                if (pauseBlinkCount >= 4) { // 2 complete blinks
+                                    clearInterval(pauseBlinkTimer);
+                                    setShowCursor(true);
+                                    // Continue typing 'Vinod'
+                                    const continueTimer = setInterval(() => {
+                                        index++;
+                                        if (index <= fullText.length) {
+                                            setDisplayText(fullText.slice(0, index));
+                                        } else {
+                                            clearInterval(continueTimer);
+                                            // Start permanent cursor blinking after typing completes
+                                            const permanentBlink = setInterval(() => {
+                                                setShowCursor(prev => !prev);
+                                            }, 500);
+                                        }
+                                    }, 100);
+                                }
+                            }, 250);
+                        } else {
+                            index++;
+                        }
+                    }
+                }, 100);
+                
+                return () => clearInterval(timer);
+            }, [startTyping]);
+            
+            React.useEffect(() => {
+                tsParticles.load("tsparticles", {
+                    background: {
+                        color: "transparent"
+                    },
+                    detectRetina: false,
+                    fpsLimit: 30,
+                    interactivity: {
+                        detectsOn: "canvas",
+                        events: {
+                            onHover: {
+                                enable: true,
+                                mode: "bubble"
+                            },
+                            resize: true
+                        },
+                        modes: {
+                            bubble: {
+                                distance: 76,
+                                size: 4,
+                                duration: 2,
+                                opacity: 1
+                            }
+                        }
+                    },
+                    particles: {
+                        color: {
+                            value: "#fff"
+                        },
+                        number: {
+                            density: {
+                                enable: true,
+                                area: 1080
+                            },
+                            limit: 0,
+                            value: 400
+                        },
+                        opacity: {
+                            animation: {
+                                enable: true,
+                                minimumValue: 0.05,
+                                speed: 0.25,
+                                sync: false
+                            },
+                            random: {
+                                enable: true,
+                                minimumValue: 0.05
+                            },
+                            value: 1
+                        },
+                        shape: {
+                            type: "circle"
+                        },
+                        size: {
+                            random: {
+                                enable: true,
+                                minimumValue: 0.5
+                            },
+                            value: 1
+                        }
+                    }
+                });
+
+            }, []);
+            
+            return (
+                <div className="min-h-screen w-full bg-[#0A0E17] text-white relative overflow-hidden" style={{fontFamily: 'Consolas, Courier New, monospace'}}>
+                    <div id="tsparticles" className="absolute inset-0"></div>
+                    <div className="absolute inset-0 z-10" style={{pointerEvents: 'none'}}>
+                        <div
+                            className="w-full h-full opacity-20"
+                            style={{
+                                backgroundImage: "linear-gradient(#ffffff20 1px, transparent 1px), linear-gradient(90deg, #ffffff20 1px, transparent 1px)",
+                                backgroundSize: "120px 120px"
+                            }}
+                        ></div>
+                    </div>
+                    <div className="w-full flex justify-between px-12 pt-10 text-sm opacity-80 relative z-10" style={{pointerEvents: 'none'}}>
+                        <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 bg-gray-400/40 rounded-sm"></div>
+                        </div>
+                    </div>
+                    <div className="w-full h-[80vh] flex items-center justify-center relative z-10" style={{pointerEvents: 'none'}}>
+                        <div className="flex flex-col items-center text-center">
+                            <h1 className="text-7xl font-bold mb-6 text-[#C8D8FF] tracking-wide">{displayText}<span className={`text-4xl ${showCursor ? 'opacity-100' : 'opacity-0'}`} style={{fontWeight: '100'}}>_</span></h1>
+                            <p className="text-2xl opacity-60 mb-2">Developer Portfolio</p>
+                            <p className="text-sm opacity-40 mb-8">Converting caffeine into code</p>
+                            <div className="flex gap-8 text-3xl opacity-70 justify-center items-center" style={{pointerEvents: 'auto'}}>
+                                <a href={socialLinks.github} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform duration-200">
+                                    <i className="fab fa-github"></i>
+                                </a>
+                                <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform duration-200">
+                                    <i className="fab fa-linkedin"></i>
+                                </a>
+                                <a href={socialLinks.email} className="hover:scale-110 transition-transform duration-200">
+                                    <i className="fas fa-envelope"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="fixed right-12 top-1/2 transform -translate-y-1/2 z-10 flex flex-col gap-3" style={{pointerEvents: 'auto'}}>
+                        <button className="px-6 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 hover:bg-white/20 transition text-sm">About</button>
+                        <button className="px-6 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 hover:bg-white/20 transition text-sm">Projects</button>
+                        <button className="px-6 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 hover:bg-white/20 transition text-sm">Skills</button>
+                        <button className="px-6 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 hover:bg-white/20 transition text-sm">Experience</button>                       
+                        <button className="px-6 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 hover:bg-white/20 transition text-sm">Contact Me</button>
+                    </div>
+                </div>
+            );
+        }
+        
+        ReactDOM.render(<Landing />, document.getElementById('root'));
+    </script>
+</body>
+</html>
