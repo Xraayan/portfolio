@@ -18,7 +18,6 @@
         }
         canvas {
             display: block;
-            vertical-align: bottom;
         }
         #tsparticles {
             position: absolute;
@@ -34,6 +33,22 @@
             const [displayText, setDisplayText] = React.useState('');
             const [showCursor, setShowCursor] = React.useState(true);
             const [startTyping, setStartTyping] = React.useState(false);
+            const [showButtons, setShowButtons] = React.useState(false);
+            const [allowScroll, setAllowScroll] = React.useState(false);
+            const [currentSection, setCurrentSection] = React.useState('home');
+            
+            const scrollToSection = (section) => {
+                if (!allowScroll) return;
+                setCurrentSection(section);
+                if (section === 'about') {
+                    window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
+                } else {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            };
+            const [showSubtitle, setShowSubtitle] = React.useState(false);
+            const [showTagline, setShowTagline] = React.useState(false);
+            const [showSocials, setShowSocials] = React.useState(false);
             const fullText = "Adithyan Vinod";
             const githubUrl = "https://github.com/Xraayan";
             
@@ -89,7 +104,16 @@
                                             // Start permanent cursor blinking after typing completes
                                             const permanentBlink = setInterval(() => {
                                                 setShowCursor(prev => !prev);
-                                            }, 500);
+                                            }, 250);
+                                            // Trigger text and button animations after typing completes
+                                            setTimeout(() => setShowSubtitle(true), 800);
+                                            setTimeout(() => setShowTagline(true), 1200);
+                                            setTimeout(() => setShowSocials(true), 1600);
+                                            setTimeout(() => {
+                                                setShowButtons(true);
+                                                setAllowScroll(true);
+                                                document.body.style.overflow = 'auto';
+                                            }, 2000);
                                         }
                                     }, 100);
                                 }
@@ -143,13 +167,13 @@
                         opacity: {
                             animation: {
                                 enable: true,
-                                minimumValue: 0.05,
+                                minimumValue: 0.3,
                                 speed: 0.25,
                                 sync: false
                             },
                             random: {
                                 enable: true,
-                                minimumValue: 0.05
+                                minimumValue: 0.3
                             },
                             value: 1
                         },
@@ -168,9 +192,17 @@
 
             }, []);
             
+            React.useEffect(() => {
+                document.body.style.overflow = 'hidden';
+                return () => {
+                    document.body.style.overflow = 'auto';
+                };
+            }, []);
+            
             return (
-                <div className="min-h-screen w-full bg-[#0A0E17] text-white relative overflow-hidden" style={{fontFamily: 'Consolas, Courier New, monospace'}}>
-                    <div id="tsparticles" className="absolute inset-0"></div>
+                <>
+                    <div id="tsparticles" className="fixed inset-0" style={{zIndex: 1}}></div>
+                    <div className="min-h-screen w-full bg-[#0A0E17] text-white relative overflow-hidden" style={{fontFamily: 'Consolas, Courier New, monospace'}}>
                     <div className="absolute inset-0 z-10" style={{pointerEvents: 'none'}}>
                         <div
                             className="w-full h-full opacity-20"
@@ -188,9 +220,9 @@
                     <div className="w-full h-[80vh] flex items-center justify-center relative z-10" style={{pointerEvents: 'none'}}>
                         <div className="flex flex-col items-center text-center">
                             <h1 className="text-7xl font-bold mb-6 text-[#C8D8FF] tracking-wide">{displayText}<span className={`text-4xl ${showCursor ? 'opacity-100' : 'opacity-0'}`} style={{fontWeight: '100'}}>_</span></h1>
-                            <p className="text-2xl opacity-60 mb-2">Developer Portfolio</p>
-                            <p className="text-sm opacity-40 mb-8">Converting caffeine into code</p>
-                            <div className="flex gap-8 text-3xl opacity-70 justify-center items-center" style={{pointerEvents: 'auto'}}>
+                            <p className={`text-2xl mb-2 transition-all duration-700 ${showSubtitle ? 'opacity-60 translate-y-0' : 'opacity-0 translate-y-4'}`}>Developer Portfolio</p>
+                            <p className={`text-sm mb-8 transition-all duration-700 ${showTagline ? 'opacity-40 translate-y-0' : 'opacity-0 translate-y-4'}`}>Converting caffeine into code</p>
+                            <div className={`flex gap-8 text-3xl justify-center items-center transition-all duration-700 ${showSocials ? 'opacity-70 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{pointerEvents: 'auto'}}>
                                 <a href={socialLinks.github} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform duration-200">
                                     <i className="fab fa-github"></i>
                                 </a>
@@ -203,14 +235,24 @@
                             </div>
                         </div>
                     </div>
-                    <div className="fixed right-12 top-1/2 transform -translate-y-1/2 z-10 flex flex-col gap-3" style={{pointerEvents: 'auto'}}>
-                        <button className="px-6 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 hover:bg-white/20 transition text-sm">About</button>
-                        <button className="px-6 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 hover:bg-white/20 transition text-sm">Projects</button>
-                        <button className="px-6 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 hover:bg-white/20 transition text-sm">Skills</button>
-                        <button className="px-6 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 hover:bg-white/20 transition text-sm">Experience</button>                       
-                        <button className="px-6 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 hover:bg-white/20 transition text-sm">Contact Me</button>
+                    <div className="fixed right-12 top-1/2 transform -translate-y-1/2 z-10 flex flex-col gap-8" style={{pointerEvents: 'auto'}}>
+                        <button onClick={() => scrollToSection('about')} className={`px-6 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 hover:bg-white/20 transition-all duration-700 text-sm ${showButtons ? 'translate-x-0 opacity-100' : 'translate-x-20 opacity-0'}`} style={{transitionDelay: '0ms'}}>About</button>
+                        <button className={`px-6 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 hover:bg-white/20 transition-all duration-700 text-sm ${showButtons ? 'translate-x-0 opacity-100' : 'translate-x-20 opacity-0'}`} style={{transitionDelay: '300ms'}}>Projects</button>
+                        <button className={`px-6 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 hover:bg-white/20 transition-all duration-700 text-sm ${showButtons ? 'translate-x-0 opacity-100' : 'translate-x-20 opacity-0'}`} style={{transitionDelay: '600ms'}}>Skills</button>
+                        <button className={`px-6 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 hover:bg-white/20 transition-all duration-700 text-sm ${showButtons ? 'translate-x-0 opacity-100' : 'translate-x-20 opacity-0'}`} style={{transitionDelay: '900ms'}}>Experience</button>
+                        <button className={`px-6 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 hover:bg-white/20 transition-all duration-700 text-sm ${showButtons ? 'translate-x-0 opacity-100' : 'translate-x-20 opacity-0'}`} style={{transitionDelay: '1200ms'}}>Contact Me</button>
                     </div>
-                </div>
+                    </div>
+                    
+                    <div className="min-h-screen w-full bg-[#0A0E17] text-white relative flex items-center justify-center" style={{fontFamily: 'Consolas, Courier New, monospace'}}>
+                        <div className="text-center max-w-4xl px-8 relative z-10">
+                            <h2 className="text-5xl font-bold mb-8 text-[#C8D8FF] tracking-wide">About Me</h2>
+                            <div className="">
+                                <p className="text-lg opacity-60">I’m an engineering student who likes building things, helping anyone who’s with me, and fighting my natural laziness with sudden bursts of ridiculous productivity. When I get into the zone, I can sit for hours solving problems, improving designs, or chasing an idea that didn’t even exist in my head ten minutes earlier. I enjoy learning new tech, experimenting with projects, and making things that feel clean, simple, and actually useful. I work with web development using HTML, CSS, and JavaScript, and I’m comfortable with Java, Python, C, and Dart for the more serious logic. I also enjoy polishing frontends, designing smooth interfaces, debugging until the problem finally gives up, learning new tools whenever something catches my interest, and turning chaotic ideas into real, working projects.</p>
+                            </div>
+                        </div>
+                    </div>
+                </>
             );
         }
         
