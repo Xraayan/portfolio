@@ -19,7 +19,8 @@ function Landing() {
   
   const socialLinks = {
     github: "https://github.com/Xraayan",
-    linkedin: "https://www.linkedin.com/in/asteroiddestroyer3000", 
+    linkedin: "https://www.linkedin.com/in/asteroiddestroyer3000",
+    instagram: "https://instagram.com/your_instagram",
     email: "mailto:adithyanvinod616@gmail.com"
   }
   
@@ -108,80 +109,171 @@ function Landing() {
   }, [startTyping, phase, charIndex, blinkCount])
   
   useEffect(() => {
-    // Initialize tsParticles with delay to avoid blocking initial render
-    const initParticles = async () => {
-      try {
-        // Wait for tsParticles to be available on window
-        if (window.tsParticles) {
-          await window.tsParticles.load("tsparticles", {
-          background: {
-            color: "transparent"
-          },
-          detectRetina: false,
-          fpsLimit: 30,
-          interactivity: {
-            detectsOn: "canvas",
-            events: {
-              onHover: {
-                enable: true,
-                mode: "bubble"
-              },
-              resize: false
-            },
-            modes: {
-              bubble: {
-                distance: 76,
-                size: 4,
-                duration: 2,
-                opacity: 1
-              }
-            }
-          },
-          particles: {
-            color: {
-              value: "#fff"
-            },
-            number: {
-              density: {
-                enable: false
-              },
-              limit: 0,
-              value: 400
-            },
-            opacity: {
-              animation: {
-                enable: true,
-                minimumValue: 0.3,
-                speed: 0.25,
-                sync: false
-              },
-              random: {
-                enable: true,
-                minimumValue: 0.3
-              },
-              value: 1
-            },
-            shape: {
-              type: "circle"
-            },
-            size: {
-              random: {
-                enable: true,
-                minimumValue: 0.5
-              },
-              value: 1
-            }
-          }
+    // Starfield animation
+    const canvas = document.getElementById('starfield')
+    const context = canvas.getContext('2d')
+    
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    const STAR_COLOR = '#fff'
+    const STAR_SIZE = 3
+    const STAR_MIN_SCALE = 0.2
+    const OVERFLOW_THRESHOLD = 50
+    const STAR_COUNT = isMobile ? Math.min(50, (window.innerWidth + window.innerHeight) / 20) : (window.innerWidth + window.innerHeight) / 8
+    
+    let scale = 1, width, height
+    let stars = []
+    let pointerX, pointerY
+    let velocity = { x: 0, y: 0, tx: 0, ty: 0, z: 0.0005 }
+    let touchInput = false
+    
+    const generate = () => {
+      for (let i = 0; i < STAR_COUNT; i++) {
+        stars.push({
+          x: 0, y: 0,
+          z: STAR_MIN_SCALE + Math.random() * (1 - STAR_MIN_SCALE)
         })
-        }
-      } catch (error) {
-        console.warn('tsParticles failed to initialize:', error)
       }
     }
     
-    // Delay particles initialization to improve initial load
-    const timer = setTimeout(initParticles, 100)
-    return () => clearTimeout(timer)
+    const placeStar = (star) => {
+      star.x = Math.random() * width
+      star.y = Math.random() * height
+    }
+    
+    const recycleStar = (star) => {
+      let direction = 'z'
+      let vx = Math.abs(velocity.x), vy = Math.abs(velocity.y)
+      
+      if (vx > 1 || vy > 1) {
+        let axis = vx > vy ? (Math.random() < vx / (vx + vy) ? 'h' : 'v') : (Math.random() < vy / (vx + vy) ? 'v' : 'h')
+        direction = axis === 'h' ? (velocity.x > 0 ? 'l' : 'r') : (velocity.y > 0 ? 't' : 'b')
+      }
+      
+      star.z = STAR_MIN_SCALE + Math.random() * (1 - STAR_MIN_SCALE)
+      
+      if (direction === 'z') {
+        star.z = 0.1
+        star.x = Math.random() * width
+        star.y = Math.random() * height
+      } else if (direction === 'l') {
+        star.x = -OVERFLOW_THRESHOLD
+        star.y = height * Math.random()
+      } else if (direction === 'r') {
+        star.x = width + OVERFLOW_THRESHOLD
+        star.y = height * Math.random()
+      } else if (direction === 't') {
+        star.x = width * Math.random()
+        star.y = -OVERFLOW_THRESHOLD
+      } else if (direction === 'b') {
+        star.x = width * Math.random()
+        star.y = height + OVERFLOW_THRESHOLD
+      }
+    }
+    
+    const resize = () => {
+      const oldWidth = width || window.innerWidth * scale
+      const oldHeight = height || window.innerHeight * scale
+      scale = isMobile ? 1 : (window.devicePixelRatio || 1)
+      width = window.innerWidth * scale
+      height = window.innerHeight * scale
+      canvas.width = width
+      canvas.height = height
+      
+      // Adjust existing star positions proportionally
+      if (oldWidth && oldHeight) {
+        const scaleX = width / oldWidth
+        const scaleY = height / oldHeight
+        stars.forEach(star => {
+          star.x *= scaleX
+          star.y *= scaleY
+        })
+      }
+    }
+    
+    const update = () => {
+      velocity.tx *= 0.96
+      velocity.ty *= 0.96
+      velocity.x += (velocity.tx - velocity.x) * 0.8
+      velocity.y += (velocity.ty - velocity.y) * 0.8
+      
+      stars.forEach((star) => {
+        star.x += velocity.x * star.z
+        star.y += velocity.y * star.z
+        star.x += (star.x - width/2) * velocity.z * star.z
+        star.y += (star.y - height/2) * velocity.z * star.z
+        star.z += velocity.z
+        
+        if (star.x < -OVERFLOW_THRESHOLD || star.x > width + OVERFLOW_THRESHOLD || star.y < -OVERFLOW_THRESHOLD || star.y > height + OVERFLOW_THRESHOLD) {
+          recycleStar(star)
+        }
+      })
+    }
+    
+    const render = () => {
+      stars.forEach((star) => {
+        context.beginPath()
+        context.lineCap = 'round'
+        context.lineWidth = STAR_SIZE * star.z * scale
+        context.globalAlpha = 0.5 + 0.5 * Math.random()
+        context.strokeStyle = STAR_COLOR
+        context.moveTo(star.x, star.y)
+        
+        let tailX = velocity.x * 2, tailY = velocity.y * 2
+        if (Math.abs(tailX) < 0.1) tailX = 0.5
+        if (Math.abs(tailY) < 0.1) tailY = 0.5
+        
+        context.lineTo(star.x + tailX, star.y + tailY)
+        context.stroke()
+      })
+    }
+    
+    let lastFrame = 0
+    const step = (timestamp) => {
+      if (isMobile && timestamp - lastFrame < 33) {
+        requestAnimationFrame(step)
+        return
+      }
+      lastFrame = timestamp
+      
+      context.clearRect(0, 0, width, height)
+      update()
+      render()
+      requestAnimationFrame(step)
+    }
+    
+    const movePointer = (x, y) => {
+      if (typeof pointerX === 'number' && typeof pointerY === 'number') {
+        let ox = x - pointerX, oy = y - pointerY
+        velocity.tx = velocity.tx + (ox / 200 * scale) * (touchInput ? 1 : -1)
+        velocity.ty = velocity.ty + (oy / 200 * scale) * (touchInput ? 1 : -1)
+      }
+      pointerX = x
+      pointerY = y
+    }
+    
+    const onMouseMove = (event) => {
+      touchInput = false
+      movePointer(event.clientX, event.clientY)
+    }
+    
+    const onMouseLeave = () => {
+      pointerX = null
+      pointerY = null
+    }
+    
+    generate()
+    resize()
+    step()
+    
+    window.addEventListener('resize', resize)
+    canvas.addEventListener('mousemove', onMouseMove)
+    document.addEventListener('mouseleave', onMouseLeave)
+    
+    return () => {
+      window.removeEventListener('resize', resize)
+      canvas.removeEventListener('mousemove', onMouseMove)
+      document.removeEventListener('mouseleave', onMouseLeave)
+    }
   }, [])
   
   useEffect(() => {
@@ -205,17 +297,9 @@ function Landing() {
   
   return (
     <>
-      <div id="tsparticles" className="fixed inset-0" style={{zIndex: 1}}></div>
+      <canvas id="starfield" className="fixed inset-0" style={{zIndex: 1}}></canvas>
       <div className="min-h-screen w-full bg-portfolio-bg text-white relative overflow-hidden font-mono">
-        <div className="absolute inset-0 z-10" style={{pointerEvents: 'none'}}>
-          <div
-            className="w-full h-full opacity-20"
-            style={{
-              backgroundImage: "linear-gradient(#ffffff20 1px, transparent 1px), linear-gradient(90deg, #ffffff20 1px, transparent 1px)",
-              backgroundSize: "120px 120px"
-            }}
-          ></div>
-        </div>
+        <div className="fixed inset-0 z-10 opacity-20" style={{pointerEvents: 'none', backgroundImage: "linear-gradient(#ffffff20 1px, transparent 1px), linear-gradient(90deg, #ffffff20 1px, transparent 1px)", backgroundSize: "120px 120px", backgroundPosition: "center"}}></div>
         <div className="w-full flex justify-between px-12 pt-10 text-sm opacity-80 relative z-10" style={{pointerEvents: 'none'}}>
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 bg-gray-400/40 rounded-sm"></div>
@@ -270,21 +354,21 @@ function Landing() {
               <h3 className="text-xl font-bold mb-3 text-portfolio-blue">Track AI(beta)</h3>
               <p className="text-sm opacity-60 mb-4 flex-grow">AI system for real-time intruder and animal detection, tracking, and precise positioning using YOLOv8, SORT, and MediaPipe landmarks.</p>
               <div className="flex justify-end">
-                <a href="#" className="px-4 py-2 bg-portfolio-blue/20 text-portfolio-blue rounded-full text-sm hover:bg-portfolio-blue/30 transition-colors">Try Now</a>
+                <a href="https://github.com/Xraayan/trackai" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-portfolio-blue/20 text-portfolio-blue rounded-full text-sm hover:bg-portfolio-blue/30 transition-colors">Try Now</a>
               </div>
             </div>
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 hover:bg-white/10 transition-all duration-300 flex flex-col h-64">
               <h3 className="text-xl font-bold mb-3 text-portfolio-blue">Privacy Grade</h3>
               <p className="text-sm opacity-60 mb-4 flex-grow">A browser extension that monitors network requests, storage APIs, fingerprinting scripts, and third-party trackers to compute a weighted privacy score and generate detailed analysis reports.</p>
               <div className="flex justify-end">
-                <a href="#" className="px-4 py-2 bg-portfolio-blue/20 text-portfolio-blue rounded-full text-sm hover:bg-portfolio-blue/30 transition-colors">Try Now</a>
+                <a href="https://github.com/Xraayan/privacygrade" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-portfolio-blue/20 text-portfolio-blue rounded-full text-sm hover:bg-portfolio-blue/30 transition-colors">Try Now</a>
               </div>
             </div>
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 hover:bg-white/10 transition-all duration-300 flex flex-col h-64">
               <h3 className="text-xl font-bold mb-3 text-portfolio-blue">Fumble</h3>
               <p className="text-sm opacity-60 mb-4 flex-grow">An app that specializes in delivering sharp, playful(harmful) AI roasts that crush excuses, spark confidence, and push you out of your comfort zone without wrecking your soul.</p>
               <div className="flex justify-end">
-                <a href="#" className="px-4 py-2 bg-portfolio-blue/20 text-portfolio-blue rounded-full text-sm hover:bg-portfolio-blue/30 transition-colors">Try Now</a>
+                <a href="https://github.com/Xraayan/" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-portfolio-blue/20 text-portfolio-blue rounded-full text-sm hover:bg-portfolio-blue/30 transition-colors">Try Now</a>
               </div>
             </div>
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-6 hover:bg-white/10 transition-all duration-300 flex flex-col h-64">
